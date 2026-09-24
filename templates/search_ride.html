@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Find Ride - CommuteSync{% endblock %}
+{% block content %}
+<section class="features">
+    <h2>Available Rides</h2>
+
+    <form method="GET" class="search-form">
+        <input type="text" name="pickup" value="{{ pickup }}" placeholder="From (pickup)" aria-label="Pickup">
+        <input type="text" name="destination" value="{{ destination }}" placeholder="To (destination)" aria-label="Destination">
+        <input type="date" name="ride_date" value="{{ ride_date }}" aria-label="Date">
+        <button type="submit" class="primary-button">Search</button>
+        {% if pickup or destination or ride_date %}
+            <a href="{{ url_for('search_ride') }}" class="secondary-button">Clear</a>
+        {% endif %}
+    </form>
+
+    {% if rides %}
+        <div id="route-summary" class="route-summary" hidden>
+            <div class="route-summary-info">
+                <span class="route-summary-label">Selected route</span>
+                <strong id="route-summary-text"></strong>
+            </div>
+            <a id="route-summary-join" href="#" class="primary-button">Join Ride</a>
+        </div>
+
+        <div class="ride-container">
+            {% for ride in rides %}
+                <div class="ride-card" tabindex="0"
+                     data-ride-id="{{ ride['id'] }}"
+                     data-pickup="{{ ride['pickup'] }}"
+                     data-destination="{{ ride['destination'] }}"
+                     data-date="{{ ride['ride_date'] }}"
+                     data-time="{{ ride['ride_time'] }}"
+                     data-fare="{{ '%.2f'|format(ride['fare']) }}">
+                    {% with driver=ride["name"] %}{% include "_ride_details.html" %}{% endwith %}
+                    {% if ride["joined"] %}
+                        <span class="status-badge">✓ Joined</span>
+                    {% elif ride["seats"] > 0 %}
+                        <form id="join-form-{{ ride['id'] }}" method="POST"
+                              action="{{ url_for('join_ride', ride_id=ride['id']) }}">
+                            <button type="submit" class="primary-button">Join Ride</button>
+                        </form>
+                    {% else %}
+                        <span class="status-badge status-full">Full</span>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="empty-text">
+            {% if pickup or destination or ride_date %}No rides match your search.
+            {% else %}No rides available right now.{% endif %}
+        </p>
+    {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,16 @@
+<div class="route">
+    <div class="route-point">
+        <span class="dot dot-start"></span>
+        <div><span class="route-label">From</span><strong>{{ ride["pickup"] }}</strong></div>
+    </div>
+    <div class="route-line"></div>
+    <div class="route-point">
+        <span class="dot dot-end"></span>
+        <div><span class="route-label">To</span><strong>{{ ride["destination"] }}</strong></div>
+    </div>
+</div>
+{% if driver %}<p>👤 Driver: {{ driver }}</p>{% endif %}
+<p>📅 Date: {{ ride["ride_date"] }}</p>
+<p>⏰ Time: {{ ride["ride_time"] }}</p>
+<p>💺 Seats left: {{ ride["seats"] }}</p>
+<p>💰 Fare: ₹{{ "%.2f"|format(ride["fare"]) }}</p>

@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Safety - CommuteSync{% endblock %}
+{% block content %}
+<section class="form-section">
+    <div class="form-container">
+        <h1>Safety Settings 🛡️</h1>
+        <p>Set one emergency contact. The SOS button will open a pre-filled
+           text message to this number — you still tap send.</p>
+        <form method="POST">
+            <label for="emergency_name">Contact Name</label>
+            <input id="emergency_name" type="text" name="emergency_name"
+                   value="{{ emergency_name }}" placeholder="e.g. Mom, Roommate" required>
+            <label for="emergency_phone">Contact Phone</label>
+            <input id="emergency_phone" type="tel" name="emergency_phone"
+                   value="{{ emergency_phone_form }}" placeholder="+91XXXXXXXXXX" required>
+            <button type="submit">Save Emergency Contact</button>
+        </form>
+        <p class="form-footer" style="text-align:center">
+            <a href="{{ url_for('dashboard') }}">← Back to Dashboard</a>
+        </p>
+    </div>
+
+    <div class="form-container safety-note">
+        <h2>How SOS works</h2>
+        <p>Tapping the 🆘 SOS button in the top bar opens your phone's messaging
+           app with a message already written — your name, your emergency
+           contact, and your next ride's route and time if you have one. If
+           you allow location access, a Google Maps link to your current
+           position is added too. Nothing is sent until you press send
+           yourself, and CommuteSync's server never sends this message —
+           your phone does.</p>
+    </div>
+</section>
+{% endblock %}

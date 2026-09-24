@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - CommuteSync{% endblock %}
+{% block content %}
+<section class="dashboard">
+    <div class="dashboard-header">
+        <h1>Welcome, {{ name }} 👋</h1>
+        <p>Manage your rides and plan your journey.</p>
+    </div>
+
+    {% if not emergency_phone %}
+        <div class="safety-banner">
+            <span>🛡️ You haven't set an emergency contact yet — the SOS button needs one.</span>
+            <a href="{{ url_for('safety') }}" class="secondary-button">Set it up</a>
+        </div>
+    {% endif %}
+
+    <div class="dashboard-actions">
+        <a href="{{ url_for('create_ride') }}" class="dashboard-card">
+            <div class="dashboard-icon">🚗</div>
+            <h2>Create a Ride</h2>
+            <p>Offer a ride and connect with passengers.</p>
+        </a>
+        <a href="{{ url_for('search_ride') }}" class="dashboard-card">
+            <div class="dashboard-icon">🔍</div>
+            <h2>Find a Ride</h2>
+            <p>Search for available rides near you.</p>
+        </a>
+    </div>
+
+    <div class="my-rides">
+        <h2>Rides I'm Offering</h2>
+        {% if rides %}
+            <div class="ride-container">
+                {% for ride in rides %}
+                    <div class="ride-card">
+                        {% with driver=None %}{% include "_ride_details.html" %}{% endwith %}
+                        <p>🧑‍🤝‍🧑 Passengers joined: {{ ride["passengers"] }}</p>
+                        <form method="POST" action="{{ url_for('delete_ride', ride_id=ride['id']) }}"
+                              data-confirm="Delete this ride? Passengers' bookings will be removed.">
+                            <button type="submit" class="danger-button">Delete Ride</button>
+                        </form>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-rides">
+                <p>You haven't created any rides yet.</p>
+                <a href="{{ url_for('create_ride') }}" class="primary-button">Create Your First Ride</a>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="my-rides">
+        <h2>Rides I've Joined</h2>
+        {% if bookings %}
+            <div class="ride-container">
+                {% for ride in bookings %}
+                    <div class="ride-card">
+                        {% with driver=ride["driver"] %}{% include "_ride_details.html" %}{% endwith %}
+                        <form method="POST" action="{{ url_for('cancel_booking', booking_id=ride['booking_id']) }}"
+                              data-confirm="Cancel your seat on this ride?">
+                            <button type="submit" class="danger-button">Cancel Booking</button>
+                        </form>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-rides">
+                <p>You haven't joined any rides yet.</p>
+                <a href="{{ url_for('search_ride') }}" class="primary-button">Find a Ride</a>
+            </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

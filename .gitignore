@@ -1,0 +1,4 @@
+__pycache__/
+*.pyc
+commutesync.db
+.venv/

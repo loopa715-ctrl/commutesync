@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="hero">
+    <div class="hero-content">
+        <h1>Smarter Rides,<br>Better Commutes.</h1>
+        <p>Connect with people travelling your way, share rides, reduce travel
+           costs and make your daily commute easier.</p>
+        <div class="hero-buttons">
+            {% if session.get('user_id') %}
+                <a href="{{ url_for('search_ride') }}" class="primary-button">Find a Ride</a>
+                <a href="{{ url_for('dashboard') }}" class="secondary-button">Dashboard</a>
+            {% else %}
+                <a href="{{ url_for('register') }}" class="primary-button">Get Started</a>
+                <a href="{{ url_for('login') }}" class="secondary-button">Login</a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="hero-card">
+        <div class="car-icon">🚘</div>
+        <h2>Find Your Ride</h2>
+        <p>Safe, simple and convenient carpooling for your everyday journey.</p>
+        <div class="feature">✓ Find nearby rides</div>
+        <div class="feature">✓ Share travel costs</div>
+        <div class="feature">✓ Reduce traffic</div>
+    </div>
+</section>
+
+<section class="features">
+    <h2>Why Choose CommuteSync?</h2>
+    <div class="feature-container">
+        <div class="feature-box">
+            <div class="feature-icon">🔍</div>
+            <h3>Find Rides</h3>
+            <p>Easily search for rides that match your pickup and destination.</p>
+        </div>
+        <div class="feature-box">
+            <div class="feature-icon">🤝</div>
+            <h3>Share a Ride</h3>
+            <p>Connect with other commuters and travel together.</p>
+        </div>
+        <div class="feature-box">
+            <div class="feature-icon">💰</div>
+            <h3>Save Money</h3>
+            <p>Share travel expenses and reduce your daily transportation cost.</p>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CommuteSync - Smart Carpooling{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="{{ url_for('index') }}" class="logo">🚗 CommuteSync</a>
+        <div class="nav-links">
+            {% if session.get('user_id') %}
+                <a href="{{ url_for('dashboard') }}">Dashboard</a>
+                <a href="{{ url_for('search_ride') }}">Find Ride</a>
+                <a href="{{ url_for('create_ride') }}">Create Ride</a>
+                <a href="{{ url_for('safety') }}">Safety</a>
+                <button
+                    id="sos-btn"
+                    type="button"
+                    class="sos-button"
+                    title="Send an emergency SOS text"
+                    data-phone="{{ emergency_phone or '' }}"
+                    data-name="{{ session.get('user_name', '') }}"
+                    data-ride-pickup="{{ next_ride['pickup'] if next_ride else '' }}"
+                    data-ride-destination="{{ next_ride['destination'] if next_ride else '' }}"
+                    data-ride-date="{{ next_ride['ride_date'] if next_ride else '' }}"
+                    data-ride-time="{{ next_ride['ride_time'] if next_ride else '' }}"
+                >🆘 SOS</button>
+                <a href="{{ url_for('logout') }}" class="nav-button">Logout</a>
+            {% else %}
+                <a href="{{ url_for('index') }}">Home</a>
+                <a href="{{ url_for('login') }}">Login</a>
+                <a href="{{ url_for('register') }}" class="nav-button">Register</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-container">
+                {% for category, message in messages %}
+                    <div class="flash flash-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <main>{% block content %}{% endblock %}</main>
+
+    <footer>
+        <p>© 2026 CommuteSync | Smarter Carpooling Made Easy</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
