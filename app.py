@@ -1,6 +1,5 @@
 """CommuteSync - a small Flask carpooling app."""
 import os
-import sqlite3
 from datetime import date, datetime
 from functools import wraps
 
@@ -8,58 +7,23 @@ from flask import (Flask, flash, g, redirect, render_template, request,
                    session, url_for)
 from werkzeug.security import check_password_hash, generate_password_hash
 
+import database
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 app = Flask(__name__)
 app.config.update(
     SECRET_KEY=os.environ.get("COMMUTESYNC_SECRET_KEY", "dev-change-me"),
     # Absolute path: the app works no matter which folder it is started from.
+    # Ignored when DATABASE_URL (Postgres, e.g. on Render) is set - see database.py.
     DATABASE=os.environ.get("COMMUTESYNC_DB", os.path.join(BASE_DIR, "commutesync.db")),
 )
 
-SCHEMA = """
-CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    email TEXT UNIQUE NOT NULL,
-    password TEXT NOT NULL,
-    emergency_name TEXT,
-    emergency_phone TEXT
-);
-CREATE TABLE IF NOT EXISTS rides (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,
-    pickup TEXT NOT NULL,
-    destination TEXT NOT NULL,
-    ride_date TEXT NOT NULL,
-    ride_time TEXT NOT NULL,
-    seats INTEGER NOT NULL,          -- seats still available
-    fare REAL NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-);
-CREATE TABLE IF NOT EXISTS bookings (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    ride_id INTEGER NOT NULL,
-    user_id INTEGER NOT NULL,
-    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE (ride_id, user_id),
-    FOREIGN KEY (ride_id) REFERENCES rides(id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-);
-"""
-
 
 # ---------------------------------------------------------------- database
-def connect():
-    conn = sqlite3.connect(app.config["DATABASE"])
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA foreign_keys = ON")
-    return conn
-
-
 def get_db():
     if "db" not in g:
-        g.db = connect()
+        g.db = database.connect(app.config["DATABASE"])
     return g.db
 
 
@@ -71,10 +35,10 @@ def close_db(_exc):
 
 
 def init_db():
-    conn = connect()
-    conn.executescript(SCHEMA)
+    conn = database.connect(app.config["DATABASE"])
+    conn.executescript(database.SCHEMA)
     # Migrate databases created before the safety-contact columns existed.
-    existing = {row["name"] for row in conn.execute("PRAGMA table_info(users)")}
+    existing = database.existing_columns(conn, "users")
     for col in ("emergency_name", "emergency_phone"):
         if col not in existing:
             conn.execute(f"ALTER TABLE users ADD COLUMN {col} TEXT")
@@ -176,7 +140,7 @@ def register():
             db.execute("INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
                        (name, email, generate_password_hash(password)))
             db.commit()
-        except sqlite3.IntegrityError:
+        except database.IntegrityError:
             flash("That email is already registered. Try logging in.", "error")
             return render_template("register.html", form=request.form), 400
 
