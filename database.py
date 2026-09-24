@@ -13,6 +13,7 @@ active.
 import os
 import re
 import sqlite3
+import time
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
 BACKEND = "postgres" if DATABASE_URL else "sqlite"
@@ -53,13 +54,27 @@ if BACKEND == "postgres":
     );
     """
 
+    def _connect_with_retry(attempts=10, delay_seconds=3):
+        """On a fresh Render Blueprint deploy, the web service can boot
+        before its just-created Postgres database has finished provisioning
+        and become resolvable in DNS - retry for ~30s instead of crashing
+        on the first attempt."""
+        last_error = None
+        for _ in range(attempts):
+            try:
+                return psycopg.connect(DATABASE_URL, row_factory=dict_row)
+            except psycopg.OperationalError as exc:
+                last_error = exc
+                time.sleep(delay_seconds)
+        raise last_error
+
     class _Connection:
         """Makes a psycopg connection look like the sqlite3.Connection calls
         app.py already makes: db.execute(sql, params).fetchone()/.rowcount,
         db.commit(), db.close() - so app.py's routes need no per-backend code."""
 
         def __init__(self):
-            self._conn = psycopg.connect(DATABASE_URL, row_factory=dict_row)
+            self._conn = _connect_with_retry()
 
         def execute(self, sql, params=()):
             cur = self._conn.cursor()
