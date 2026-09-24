@@ -74,13 +74,29 @@ function initSos() {
         };
 
         if (navigator.geolocation) {
+            // getCurrentPosition's own `timeout` option isn't reliably honored by
+            // every browser (e.g. if the location-permission prompt is never
+            // answered), which can leave SOS looking stuck. This fallback timer
+            // guarantees the SMS opens within 4s regardless of what geolocation does.
+            let settled = false;
+            const settle = function (extra) {
+                if (settled) return;
+                settled = true;
+                send(extra);
+            };
+            const fallback = setTimeout(function () { settle(""); }, 4000);
+
             navigator.geolocation.getCurrentPosition(
                 function (position) {
+                    clearTimeout(fallback);
                     const mapsLink = " My location: https://maps.google.com/?q=" +
                         position.coords.latitude + "," + position.coords.longitude;
-                    send(mapsLink);
+                    settle(mapsLink);
                 },
-                function () { send(""); },
+                function () {
+                    clearTimeout(fallback);
+                    settle("");
+                },
                 { timeout: 3000 }
             );
         } else {
